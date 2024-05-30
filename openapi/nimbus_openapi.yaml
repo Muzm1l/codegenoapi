@@ -1,0 +1,794 @@
+openapi: 3.0.3
+info:
+  title: Nimbus Data Fabric - OpenAPI 3.0
+  description: |-
+    This is the Nimbus based on the OpenAPI 3.0 specification. The DataFabric by Aegion Dynamic is a powerful framework that enables seamless integration and management of data across various systems and platforms. It serves as the foundation for a microsaas framework, allowing developers to build scalable and modular software-as-a-service applications.
+
+    With the DataFabric, you can easily connect, transform, and analyze data from different sources, providing a unified view of your data landscape. It offers a range of features and capabilities, including data synchronization, real-time data processing, and data governance.
+
+    In this version of the DataFabric, we have adopted a design-first approach, allowing for greater flexibility and extensibility. You can contribute to the improvement of the DataFabric by suggesting changes to the API definition or by contributing to the codebase.
+
+    Here are some useful links to get started with the DataFabric:
+    - [DataFabric GitHub repository](https://github.com/aegion-dynamic/datafabric)
+    - [API definition for the DataFabric](https://github.com/aegion-dynamic/datafabric/blob/master/src/main/resources/openapi.yaml)
+
+    # termsOfService: http://your-organization.com/terms/
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Nimbus
+  url: http://docs.aegiondynamic.com/nimbus/
+servers:
+- url: http://localhost:8080/api/v1
+  description: Localhost server
+tags:
+- name: files
+  description: Operations about files
+  externalDocs:
+    description: Find out more
+    url: http://docs.aegiondynamic.com/nimbus/
+- name: queues
+  description: Operations about queues
+  externalDocs:
+    description: Find out more
+    url: http://docs.aegiondynamic.com/nimbus/
+- name: task
+  description: Operations about tasks
+  externalDocs:
+    description: Find out more
+    url: http://docs.aegiondynamic.com/nimbus/
+paths:
+  /file:
+    put:
+      tags:
+      - files
+      summary: Update an existing file
+      description: Update an existing file by Id
+      operationId: updateNimbusFile
+      requestBody:
+        description: Update an existent file in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/File'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: File not found
+        "422":
+          description: Validation exception
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+    post:
+      tags:
+      - files
+      summary: Add a new file to the store
+      description: Add a new file to the store
+      operationId: addNimbusFile
+      requestBody:
+        description: Create a new file in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/File'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+  /file/findByStatus:
+    get:
+      tags:
+      - files
+      summary: Finds Files by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findNimbusFilesByStatus
+      parameters:
+      - name: status
+        in: query
+        description: Status values that need to be considered for filter
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: available
+          enum:
+          - available
+          - pending
+          - sold
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+                x-content-type: application/json
+        "400":
+          description: Invalid status value
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+  /file/findByTags:
+    get:
+      tags:
+      - files
+      summary: Finds Files by tags
+      description: "Multiple tags can be provided with comma separated strings. Use\
+        \ tag1, tag2, tag3 for testing."
+      operationId: findNimbusFilesByTags
+      parameters:
+      - name: tags
+        in: query
+        description: Tags to filter by
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+                x-content-type: application/json
+        "400":
+          description: Invalid tag value
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+  /file/{fileId}:
+    get:
+      tags:
+      - files
+      summary: Find file by ID
+      description: Returns a single file
+      operationId: getNimbusFileById
+      parameters:
+      - name: fileId
+        in: path
+        description: ID of file to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: File not found
+      security:
+      - api_key: []
+      - nimbus_auth:
+        - write:files
+        - read:files
+    post:
+      tags:
+      - file
+      summary: Updates a file in the store with form data
+      description: ""
+      operationId: updateNimbusFileWithForm
+      parameters:
+      - name: fileId
+        in: path
+        description: ID of file that needs to be updated
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: name
+        in: query
+        description: Name of file that needs to be updated
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: status
+        in: query
+        description: Status of file that needs to be updated
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "400":
+          description: Invalid input
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+    delete:
+      tags:
+      - file
+      summary: Deletes a file
+      description: delete a file
+      operationId: deleteNimmbusFile
+      parameters:
+      - name: api_key
+        in: header
+        description: ""
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: fileId
+        in: path
+        description: File id to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "400":
+          description: Invalid file value
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+  /file/{fileId}/uploadImage:
+    post:
+      tags:
+      - files
+      summary: uploads an image
+      description: ""
+      operationId: uploadNimbusbusFile
+      parameters:
+      - name: fileId
+        in: path
+        description: ID of file to update
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: additionalMetadata
+        in: query
+        description: Additional Metadata
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      security:
+      - nimbus_auth:
+        - write:files
+        - read:files
+  /queue/{queueId}:
+    put:
+      tags:
+      - queues
+      summary: Rename a queue
+      description: Rename a queue
+      operationId: renameNimbusQueue
+      parameters:
+      - name: queueId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: New name for the queue
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/queueNameRequest'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueResponse'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Queue not found
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - queues
+      summary: Delete a queue
+      description: Delete a queue
+      operationId: deleteNimbusQueue
+      parameters:
+      - name: queueId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueResponse'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Queue not found
+      security:
+      - jwt: []
+  /queue:
+    get:
+      tags:
+      - queues
+      summary: Get all queues
+      description: Get all queues
+      operationId: getNimbusAllQueues
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueResponse'
+        "500":
+          description: Server Error
+    post:
+      tags:
+      - queues
+      summary: Create a new queue
+      description: Create a new queue
+      operationId: createNimbusQueue
+      requestBody:
+        description: Queue object to be created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/queueNameRequest'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/queueResponse'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+      - jwt: []
+  /queue/pop/{queueName}:
+    get:
+      tags:
+      - queues
+      summary: Pop a task
+      description: Pop a task from the task queue
+      operationId: popNimbusTask
+      parameters:
+      - name: queueName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inlineResponse200'
+        "404":
+          description: No tasks available
+      security:
+      - jwt: []
+  /task/{queueName}/fromqueue:
+    get:
+      tags:
+      - tasks
+      summary: Get all tasks from a queue
+      description: Get all tasks
+      operationId: getAllNimbusTasks
+      parameters:
+      - name: queueName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/taskResponse'
+                x-content-type: application/json
+        "400":
+          description: Invalid queuename supplied
+        "404":
+          description: Task not found
+      security:
+      - jwt: []
+  /task:
+    post:
+      tags:
+      - tasks
+      summary: Create a new task
+      description: Create a new task
+      operationId: createNimbusTask
+      requestBody:
+        description: Task object to be created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/taskAddToqueueRequest'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskResponse'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+      - jwt: []
+  /task/{taskId}:
+    get:
+      tags:
+      - tasks
+      summary: Get task by ID
+      description: Returns a single task
+      operationId: getNimbusTaskById
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskResponse'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Task not found
+      security:
+      - jwt: []
+    put:
+      tags:
+      - tasks
+      summary: Update task
+      description: Update an existing task by ID
+      operationId: updateNimbusTask
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Update an existing task in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task_update_request'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskResponse'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Task not found
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - tasks
+      summary: Delete task
+      description: Delete a task by ID
+      operationId: deleteNimbusTask
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskResponse'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Task not found
+      security:
+      - jwt: []
+  /task/{taskId}/status:
+    get:
+      tags:
+      - tasks
+      summary: Get task status
+      description: Get the status of a task by ID
+      operationId: getNimbusTaskStatus
+      parameters:
+      - name: taskId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/taskStatus'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Task not found
+      security:
+      - jwt: []
+components:
+  schemas:
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique id of the file object
+        fileName:
+          type: string
+          description: Name of file
+        fileURI:
+          type: string
+          description: URI of the file
+          nullable: true
+        fileSize:
+          type: integer
+          description: Size of the file in bytes
+        createdAt:
+          type: string
+          description: Time when the file object was created
+          format: date-time
+        metadata:
+          type: object
+          description: Optional metadata associated with the file (JSON format)
+          nullable: true
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        fileName: fileName
+        metadata: {}
+        fileSize: 6
+        fileURI: fileURI
+        id: 0
+    taskResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique ID of the task
+          format: int64
+        status:
+          type: string
+          description: Current status of task
+          enum:
+          - TO_DO
+          - IN_PROGRESS
+          - DONE
+        createdAt:
+          type: string
+          description: Task creation time-date
+          format: date-time
+        startedAt:
+          type: string
+          description: task starting time
+          format: date-time
+        completedAt:
+          type: string
+          description: task completion time-date
+          format: date-time
+        payload:
+          type: string
+          description: data regarding task
+        queueId:
+          type: integer
+          description: queueID to which task belongs
+          format: int64
+      example:
+        createdAt: 2000-01-23T04:56:07.000+00:00
+        queueId: 6
+        completedAt: 2000-01-23T04:56:07.000+00:00
+        payload: payload
+        startedAt: 2000-01-23T04:56:07.000+00:00
+        id: 0
+        status: TO_DO
+    Task_update_request:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Current status of task
+          enum:
+          - TO_DO
+          - IN_PROGRESS
+          - DONE
+      example:
+        status: T0_D0
+    taskAddToqueueRequest:
+      type: object
+      properties:
+        payload:
+          type: string
+          description: data regarding task
+        queueName:
+          type: string
+          description: queuename to which task belongs
+      example:
+        queueName: patient
+        payload: payload
+    queueResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique id of the queue
+          format: int64
+        queueName:
+          type: string
+          description: Name of the queue
+        createdAt:
+          type: string
+          description: Task creation time-date
+          format: date-time
+      example:
+        queueName: queueName
+        id: 0
+        createdAt: 2000-01-23T04:56:07.000+00:00
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      example:
+        code: 0
+        type: type
+        message: message
+      xml:
+        name: '##default'
+    queueNameRequest:
+      type: object
+      properties:
+        queueName:
+          type: string
+          description: Name of the queue
+    inlineResponse200:
+      type: object
+      properties:
+        taskID:
+          type: string
+          description: ID of the task from queue
+      example:
+        taskID: taskID
+    taskStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Current status of task
+      example:
+        status: status
+  securitySchemes:
+    nimbus_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: core.auth_utils.decode_token
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
